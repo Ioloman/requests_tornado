@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "387405e61984ca00e4557b359ac46581a23a873a33aa2bf387393274f9d3639e"
+            "sha256": "e09c0656756d19197c25d6d8fb1f5ab17c113745788bdc06e9005da31413b27d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,14 @@
         ]
     },
     "default": {
+        "aiomysql": {
+            "hashes": [
+                "sha256:4e4a65914daacc40e70f992ddbeef32457561efbad8de41393e8ac5a84126a5a",
+                "sha256:9bcf8f26d22e550f75cabd635fa19a55c45f835eea008275960cb37acadd622a"
+            ],
+            "index": "pypi",
+            "version": "==0.0.22"
+        },
         "databases": {
             "extras": [
                 "aiomysql"
@@ -87,6 +95,13 @@
             ],
             "markers": "python_version >= '3' and platform_machine == 'aarch64' or (platform_machine == 'ppc64le' or (platform_machine == 'x86_64' or (platform_machine == 'amd64' or (platform_machine == 'AMD64' or (platform_machine == 'win32' or platform_machine == 'WIN32')))))",
             "version": "==1.1.2"
+        },
+        "pymysql": {
+            "hashes": [
+                "sha256:3943fbbbc1e902f41daf7f9165519f140c4451c179380677e6a848587042561a",
+                "sha256:d8c059dcd81dedb85a9f034d5e22dcb4442c0b201908bede99e306d65ea7c8e7"
+            ],
+            "version": "==0.9.3"
         },
         "sqlalchemy": {
             "hashes": [

@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 tornado = "*"
 databases = {extras = ["aiomysql"], version = "*"}
+aiomysql = "*"
 
 [dev-packages]
 
