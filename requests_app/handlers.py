@@ -4,6 +4,7 @@ from tornado.web import RequestHandler, HTTPError, MissingArgumentError
 from databases.core import Connection
 from . import queries
 import base64
+from urllib.parse import quote, unquote
 
 
 def validate_json(json_: bytes) -> bool:
@@ -52,19 +53,62 @@ def generate_key(json_: str) -> bytes:
 
 
 class BaseHandler(RequestHandler):
+    """
+    base class for handlers
+    """
+
     def initialize(self, connection: Connection):
         self.connection = connection
+
+    # override error page
+    def write_error(self, status_code: int, **kwargs) -> None:
+        self.finish(json.dumps({
+            'error': f'{status_code} {self._reason}'
+        }))
+
+    # set header
+    def prepare(self):
+        self.set_header('Content-Type', 'application/json')
+    
 
 
 class RequestAddHandler(BaseHandler):
     async def post(self):
+        # validate json
         if not validate_json(self.request.body):
             raise HTTPError(400)
 
+        # clean json and generate key
         json_ = clear_json(self.request.body)
         key: bytes = generate_key(json_)
+
+        # insert/update in database
         async with self.connection:
             await queries.insert_request(self.connection, key, json_)
 
-        self.write(json.dumps({'key': key}))
+        # key url-encoded because it may contain "="
+        # so it can be used in get request in url
+        self.write(json.dumps({'key': quote(key)}))
 
+
+class RequestGetHandler(BaseHandler):
+    async def get(self):
+        # parse key from url
+        try:
+            # need to remember - key is url-encoded
+            key = unquote(self.get_query_argument('key'))
+        except MissingArgumentError:
+            raise HTTPError(400)
+        
+        # get request from database
+        async with self.connection:
+            request = await queries.get_request(self.connection, key)
+        
+        if request is None:
+            raise HTTPError(404)
+
+        # make response
+        json_ = json.loads(request['body'])
+        json_['duplicates'] = request['duplicates']
+
+        self.write(json.dumps(json_))

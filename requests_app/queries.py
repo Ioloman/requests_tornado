@@ -15,3 +15,9 @@ async def insert_request(connection: Connection, key: str, json: str):
         {'key': key, 'json': json}
     )
 
+
+async def get_request(connection: Connection, key: str):
+    return await connection.fetch_one(
+        "select * from requests.requests where id = :key limit 1",
+        {'key': key}
+    )
