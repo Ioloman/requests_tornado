@@ -1,4 +1,5 @@
 import json
+from lib2to3.pytree import Base
 from urllib import request
 from tornado.web import RequestHandler, HTTPError, MissingArgumentError
 from databases.core import Connection
@@ -39,7 +40,7 @@ def clear_json(json_: bytes) -> str:
     return json.dumps(json.loads(json_))
 
 
-def generate_key(json_: str) -> bytes:
+def generate_key(json_: str) -> str:
     """generate base64 encoded key build by json using "key1+value1+key2+..." method
 
     Args:
@@ -71,6 +72,16 @@ class BaseHandler(RequestHandler):
         self.set_header('Content-Type', 'application/json')
     
 
+class BaseHandlerParseKey(BaseHandler):
+    def prepare(self):
+        try:
+            self.key = self.get_query_argument('key')
+        except MissingArgumentError:
+            raise HTTPError(400)
+        # key is url-encoded so need to decode
+        self.key = unquote(self.key)
+        return super().prepare()
+
 
 class RequestAddHandler(BaseHandler):
     async def post(self):
@@ -80,7 +91,7 @@ class RequestAddHandler(BaseHandler):
 
         # clean json and generate key
         json_ = clear_json(self.request.body)
-        key: bytes = generate_key(json_)
+        key = generate_key(json_)
 
         # insert/update in database
         async with self.connection:
@@ -91,18 +102,11 @@ class RequestAddHandler(BaseHandler):
         self.write(json.dumps({'key': quote(key)}))
 
 
-class RequestGetHandler(BaseHandler):
+class RequestGetHandler(BaseHandlerParseKey):
     async def get(self):
-        # parse key from url
-        try:
-            # need to remember - key is url-encoded
-            key = unquote(self.get_query_argument('key'))
-        except MissingArgumentError:
-            raise HTTPError(400)
-        
         # get request from database
         async with self.connection:
-            request = await queries.get_request(self.connection, key)
+            request = await queries.get_request(self.connection, self.key)
         
         if request is None:
             raise HTTPError(404)
@@ -112,3 +116,34 @@ class RequestGetHandler(BaseHandler):
         json_['duplicates'] = request['duplicates']
 
         self.write(json.dumps(json_))
+
+
+class RequestDeleteHandler(BaseHandlerParseKey):
+    async def delete(self):
+        async with self.connection:
+            deleted = await queries.delete_request(self.connection, str(self.key))
+
+        if deleted:
+            self.write(json.dumps({'key': quote(str(self.key))}))
+        else:
+            raise HTTPError(404)
+        
+
+class RequestUpdateHandler(BaseHandlerParseKey):
+    async def put(self):
+        # validate json
+        if not validate_json(self.request.body):
+            raise HTTPError(400)
+
+        # clean json and generate key
+        json_ = clear_json(self.request.body)
+        key = generate_key(json_)
+
+        async with self.connection:
+            updated = await queries.update_request(self.connection, self.key, key, json_)
+
+        if updated:
+            self.write(json.dumps({'key': quote(str(key))}))
+        else:
+            raise HTTPError(404)
+
