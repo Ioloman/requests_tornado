@@ -12,7 +12,7 @@ async def insert_request(connection: Connection, key: str, json: str) -> None:
         {'key': key}
     )
 
-    if request:
+    if not request:
         await connection.execute(
             """
             insert into
