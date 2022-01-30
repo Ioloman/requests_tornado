@@ -6,7 +6,13 @@ from tornado.ioloop import IOLoop
 import tornado.web
 from tornado.httpserver import HTTPServer
 from dotenv import load_dotenv
-from requests_app.handlers import RequestAddHandler, RequestGetHandler, RequestDeleteHandler, RequestUpdateHandler
+from requests_app.handlers import (
+    RequestAddHandler, 
+    RequestGetHandler, 
+    RequestDeleteHandler, 
+    RequestUpdateHandler, 
+    GetStaticticsHandler
+)
 
 
 
@@ -24,6 +30,9 @@ def make_app(database: Database):
         ),
         tornado.web.url(
             r'/api/update', RequestUpdateHandler, {'connection': database.connection()}, name='update'
+        ),
+        tornado.web.url(
+            r'/api/statistic', GetStaticticsHandler, {'connection': database.connection()}, name='stats'
         ),
     ])
 

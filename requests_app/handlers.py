@@ -147,3 +147,13 @@ class RequestUpdateHandler(BaseHandlerParseKey):
         else:
             raise HTTPError(404)
 
+class GetStaticticsHandler(BaseHandler):
+    async def get(self):
+        async with self.connection:
+            statistics = await queries.get_statistics(self.connection)
+
+        try:
+            percentage = 100 / float(statistics['sum_all'] or 0) * float(statistics['sum_duplicates'] or 0)
+        except ZeroDivisionError:
+            percentage = 0
+        return self.write(json.dumps({'percentage': round(percentage, 2)}))
