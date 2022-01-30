@@ -1,11 +1,9 @@
 import os
 import os.path
 from databases import Database
-import databases
 from tornado.ioloop import IOLoop
 import tornado.web
 from tornado.httpserver import HTTPServer
-from dotenv import load_dotenv
 from requests_app.handlers import (
     RequestAddHandler, 
     RequestGetHandler, 
@@ -45,8 +43,6 @@ def make_app(database: Database):
 
 
 def main():
-    # todo: remove after docker
-    load_dotenv()
     # create database object and connect
     database = Database(os.getenv('DATABASE_URL'))
     IOLoop.current().run_sync(lambda: database.connect())

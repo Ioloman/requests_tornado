@@ -7,18 +7,34 @@ async def insert_request(connection: Connection, key: str, json: str) -> None:
     1 duplicates ->  2 same requests
     etc.
     """
-    await connection.execute(
-        """
-        insert into
-            requests.requests
-            (id, body, duplicates)
-        values
-            (:key, :json, 0)
-        on duplicate key update
-            duplicates = duplicates + 1
-        """,
-        {'key': key, 'json': json}
+    request = await connection.fetch_one(
+        "select id from requests.requests where id = :key",
+        {'key': key}
     )
+
+    if request:
+        await connection.execute(
+            """
+            insert into
+                requests.requests
+                (id, body, duplicates)
+            values
+                (:key, :json, 0)
+            """,
+            {'key': key, 'json': json}
+        )
+    else:
+        await connection.execute(
+            """
+            update 
+                requests.requests
+            set 
+                duplicates = duplicates + 1
+            where 
+                id = :key
+            """,
+            {'key': key}
+        )
 
 
 async def get_request(connection: Connection, key: str):
