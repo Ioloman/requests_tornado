@@ -157,3 +157,18 @@ class GetStaticticsHandler(BaseHandler):
         except ZeroDivisionError:
             percentage = 0
         return self.write(json.dumps({'percentage': round(percentage, 2)}))
+
+
+class MainPageHandler(RequestHandler):
+    async def get(self):
+        self.write(json.dumps({
+            'available_urls': [
+                {'method': 'POST', 'url': '/api/add', 'json_body': True}, 
+                {'method': 'GET', 'url': '/api/get?key={key}', 'json_body': False}, 
+                {'method': 'DELETE', 'url': '/api/remove?key={key}', 'json_body': False}, 
+                {'method': 'PUT', 'url': '/api/update?key={key}', 'json_body': False}, 
+                {'method': 'GET', 'url': '/api/statistic', 'json_body': False}, 
+            ]
+        },
+        indent=4
+        ))

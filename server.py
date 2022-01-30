@@ -11,7 +11,8 @@ from requests_app.handlers import (
     RequestGetHandler, 
     RequestDeleteHandler, 
     RequestUpdateHandler, 
-    GetStaticticsHandler
+    GetStaticticsHandler,
+    MainPageHandler
 )
 
 
@@ -33,6 +34,12 @@ def make_app(database: Database):
         ),
         tornado.web.url(
             r'/api/statistic', GetStaticticsHandler, {'connection': database.connection()}, name='stats'
+        ),
+        tornado.web.url(
+            r'/', tornado.web.RedirectHandler, {'url': '/api'}
+        ),
+        tornado.web.url(
+            r'/api', MainPageHandler, name='main'
         ),
     ])
 
