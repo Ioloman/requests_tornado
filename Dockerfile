@@ -9,4 +9,4 @@ RUN pipenv install
 
 EXPOSE ${APP_PORT}
 
-CMD pipenv run python server.py
+CMD bash wait-for-it.sh -t 0 mysql:3306 -- pipenv run python server.py
